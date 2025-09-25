@@ -535,7 +535,11 @@ function BookingPage() {
                               <p className={`text-sm ${
                                 theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                               }`}>
-                                {appointment.date} at {appointment.time}
+                                {appointment.date} at {appointment.time ? new Date(`2000-01-01T${appointment.time}`).toLocaleTimeString('en-US', {
+                                  hour: 'numeric',
+                                  minute: '2-digit',
+                                  hour12: true
+                                }) : appointment.time}
                               </p>
                               <p className={`text-sm ${
                                 theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
@@ -1029,14 +1033,10 @@ function BookingPage() {
                     <div className="space-y-1 text-sm">
                       <div className="flex justify-between">
                         <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-                          Appointment:
+                          Date & Time:
                         </span>
                         <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                          {selectedDate} at {selectedTime ? new Date(`2000-01-01T${selectedTime}`).toLocaleTimeString('en-US', {
-                            hour: 'numeric',
-                            minute: '2-digit',
-                            hour12: true
-                          }) : 'No time selected'}
+                          {selectedDate} at {selectedTime}
                         </span>
                       </div>
                       <div className="flex justify-between font-semibold pt-2 border-t border-gray-300 dark:border-gray-600">
