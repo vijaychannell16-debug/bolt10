@@ -59,13 +59,20 @@ function ListServicePage() {
   ];
 
   const availabilityOptions = [
-    'Monday Morning', 'Monday Afternoon', 'Monday Evening',
-    'Tuesday Morning', 'Tuesday Afternoon', 'Tuesday Evening',
-    'Wednesday Morning', 'Wednesday Afternoon', 'Wednesday Evening',
-    'Thursday Morning', 'Thursday Afternoon', 'Thursday Evening',
-    'Friday Morning', 'Friday Afternoon', 'Friday Evening',
-    'Saturday Morning', 'Saturday Afternoon', 'Saturday Evening',
-    'Sunday Morning', 'Sunday Afternoon', 'Sunday Evening'
+    'Monday 9:00 AM', 'Monday 10:00 AM', 'Monday 11:00 AM', 'Monday 12:00 PM', 
+    'Monday 1:00 PM', 'Monday 2:00 PM', 'Monday 3:00 PM', 'Monday 4:00 PM', 'Monday 5:00 PM',
+    'Tuesday 9:00 AM', 'Tuesday 10:00 AM', 'Tuesday 11:00 AM', 'Tuesday 12:00 PM',
+    'Tuesday 1:00 PM', 'Tuesday 2:00 PM', 'Tuesday 3:00 PM', 'Tuesday 4:00 PM', 'Tuesday 5:00 PM',
+    'Wednesday 9:00 AM', 'Wednesday 10:00 AM', 'Wednesday 11:00 AM', 'Wednesday 12:00 PM',
+    'Wednesday 1:00 PM', 'Wednesday 2:00 PM', 'Wednesday 3:00 PM', 'Wednesday 4:00 PM', 'Wednesday 5:00 PM',
+    'Thursday 9:00 AM', 'Thursday 10:00 AM', 'Thursday 11:00 AM', 'Thursday 12:00 PM',
+    'Thursday 1:00 PM', 'Thursday 2:00 PM', 'Thursday 3:00 PM', 'Thursday 4:00 PM', 'Thursday 5:00 PM',
+    'Friday 9:00 AM', 'Friday 10:00 AM', 'Friday 11:00 AM', 'Friday 12:00 PM',
+    'Friday 1:00 PM', 'Friday 2:00 PM', 'Friday 3:00 PM', 'Friday 4:00 PM', 'Friday 5:00 PM',
+    'Saturday 9:00 AM', 'Saturday 10:00 AM', 'Saturday 11:00 AM', 'Saturday 12:00 PM',
+    'Saturday 1:00 PM', 'Saturday 2:00 PM', 'Saturday 3:00 PM', 'Saturday 4:00 PM', 'Saturday 5:00 PM',
+    'Sunday 9:00 AM', 'Sunday 10:00 AM', 'Sunday 11:00 AM', 'Sunday 12:00 PM',
+    'Sunday 1:00 PM', 'Sunday 2:00 PM', 'Sunday 3:00 PM', 'Sunday 4:00 PM', 'Sunday 5:00 PM'
   ];
 
   useEffect(() => {
@@ -481,9 +488,9 @@ function ListServicePage() {
                 <label className={`block text-sm font-medium mb-2 ${
                   theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
                 }`}>
-                  Availability
+                  Availability (9 AM - 5 PM, 1-hour slots)
                 </label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 max-h-48 overflow-y-auto">
                   {availabilityOptions.map((slot) => (
                     <motion.button
                       key={slot}
@@ -501,6 +508,49 @@ function ListServicePage() {
                       {slot}
                     </motion.button>
                   ))}
+                </div>
+                <div className="mt-3 flex space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // Select all Monday slots
+                      const mondaySlots = availabilityOptions.filter(slot => slot.startsWith('Monday'));
+                      setServiceData(prev => ({
+                        ...prev,
+                        availability: [...new Set([...(prev.availability || []), ...mondaySlots])]
+                      }));
+                    }}
+                    className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm"
+                  >
+                    Select All Monday
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // Select all weekday slots (Mon-Fri)
+                      const weekdaySlots = availabilityOptions.filter(slot => 
+                        slot.startsWith('Monday') || slot.startsWith('Tuesday') || 
+                        slot.startsWith('Wednesday') || slot.startsWith('Thursday') || 
+                        slot.startsWith('Friday')
+                      );
+                      setServiceData(prev => ({
+                        ...prev,
+                        availability: [...new Set([...(prev.availability || []), ...weekdaySlots])]
+                      }));
+                    }}
+                    className="px-3 py-1 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm"
+                  >
+                    Select All Weekdays
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setServiceData(prev => ({ ...prev, availability: [] }));
+                    }}
+                    className="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm"
+                  >
+                    Clear All
+                  </button>
                 </div>
               </div>
 

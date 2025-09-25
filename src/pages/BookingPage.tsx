@@ -27,11 +27,13 @@ interface Therapist {
   nextAvailable: string;
   bio: string;
   languages: string[];
+  availability?: string[];
 }
 
 interface TimeSlot {
   time: string;
   available: boolean;
+  day: string;
 }
 
 interface Appointment {
@@ -65,6 +67,7 @@ function BookingPage() {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [userAppointments, setUserAppointments] = useState<Appointment[]>([]);
   const [bookingStep, setBookingStep] = useState(1);
+  const [availableTimeSlots, setAvailableTimeSlots] = useState<TimeSlot[]>([]);
 
   const defaultTherapists: Therapist[] = [
     {
@@ -196,16 +199,51 @@ function BookingPage() {
     setUserAppointments(userBookings);
   };
 
-  const timeSlots: TimeSlot[] = [
-    { time: '09:00', available: true },
-    { time: '10:00', available: false },
-    { time: '11:00', available: true },
-    { time: '13:00', available: true },
-    { time: '14:00', available: false },
-    { time: '15:00', available: true },
-    { time: '16:00', available: true },
-    { time: '17:00', available: false }
-  ];
+  // Generate time slots based on therapist availability
+  const generateTimeSlots = (therapist: Therapist, selectedDate: string) => {
+    if (!selectedDate) return [];
+    
+    const dayName = new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long' });
+    const therapistAvailability = therapist.availability || [];
+    
+    // Get all slots for the selected day
+    const daySlots = therapistAvailability.filter(slot => slot.startsWith(dayName));
+    
+    // Extract time from slots like "Monday 9:00 AM"
+    const timeSlots = daySlots.map(slot => {
+      const timeMatch = slot.match(/(\d{1,2}:\d{2} [AP]M)/);
+      const time = timeMatch ? timeMatch[1] : '';
+      
+      // Convert to 24-hour format for easier handling
+      const convertTo24Hour = (time12: string) => {
+        const [time, modifier] = time12.split(' ');
+        let [hours, minutes] = time.split(':');
+        if (hours === '12') {
+          hours = '00';
+        }
+        if (modifier === 'PM') {
+          hours = (parseInt(hours, 10) + 12).toString();
+        }
+        return `${hours.padStart(2, '0')}:${minutes}`;
+      };
+      
+      return {
+        time: convertTo24Hour(time),
+        available: true, // In real app, check against existing bookings
+        day: dayName
+      };
+    });
+    
+    return timeSlots.sort((a, b) => a.time.localeCompare(b.time));
+  };
+
+  // Update available time slots when therapist or date changes
+  useEffect(() => {
+    if (selectedTherapist && selectedDate) {
+      const slots = generateTimeSlots(selectedTherapist, selectedDate);
+      setAvailableTimeSlots(slots);
+    }
+  }, [selectedTherapist, selectedDate]);
 
   const specializations = ['All', 'Anxiety', 'Depression', 'PTSD', 'Trauma', 'Family Therapy', 'Addiction', 'CBT'];
 
@@ -661,12 +699,12 @@ function BookingPage() {
                         <p className={`text-sm ${
                           theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                         }`}>
-                          Next available:
+                          Available Hours:
                         </p>
                         <p className={`font-semibold ${
                           theme === 'dark' ? 'text-white' : 'text-gray-800'
                         }`}>
-                          {therapist.nextAvailable}
+                          9 AM - 5 PM Daily
                         </p>
                         <motion.button
                           whileHover={{ scale: 1.05 }}
@@ -798,18 +836,57 @@ function BookingPage() {
                         <label className={`block text-sm font-medium mb-2 ${
                           theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
                         }`}>
-                          Preferred Time
+                          Available Time Slots
                         </label>
-                        <input
-                          type="time"
-                          value={selectedTime}
-                          onChange={(e) => setSelectedTime(e.target.value)}
-                          className={`w-full px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ${
-                            theme === 'dark'
-                              ? 'bg-gray-700 border-gray-600 text-white'
-                              : 'bg-white border-gray-300 text-gray-900'
-                          }`}
-                        />
+                        {availableTimeSlots.length > 0 ? (
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-48 overflow-y-auto">
+                            {availableTimeSlots.map((slot) => (
+                              <motion.button
+                                key={slot.time}
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={() => setSelectedTime(slot.time)}
+                                disabled={!slot.available}
+                                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                                  selectedTime === slot.time
+                                    ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white'
+                                    : slot.available
+                                    ? theme === 'dark'
+                                      ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                }`}
+                              >
+                                {/* Convert 24-hour back to 12-hour for display */}
+                                {new Date(`2000-01-01T${slot.time}`).toLocaleTimeString('en-US', {
+                                  hour: 'numeric',
+                                  minute: '2-digit',
+                                  hour12: true
+                                })}
+                              </motion.button>
+                            ))}
+                          </div>
+                        ) : selectedDate ? (
+                          <div className={`p-4 rounded-lg text-center ${
+                            theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'
+                          }`}>
+                            <p className={`text-sm ${
+                              theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                            }`}>
+                              No available slots for {new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long' })}
+                            </p>
+                          </div>
+                        ) : (
+                          <div className={`p-4 rounded-lg text-center ${
+                            theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'
+                          }`}>
+                            <p className={`text-sm ${
+                              theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                            }`}>
+                              Please select a date first
+                            </p>
+                          </div>
+                        )}
                       </div>
 
                       <motion.button
