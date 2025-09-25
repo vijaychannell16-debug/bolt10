@@ -1029,10 +1029,14 @@ function BookingPage() {
                     <div className="space-y-1 text-sm">
                       <div className="flex justify-between">
                         <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-                          Date & Time:
+                          Appointment:
                         </span>
                         <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                          {selectedDate} at {selectedTime}
+                          {selectedDate} at {selectedTime ? new Date(`2000-01-01T${selectedTime}`).toLocaleTimeString('en-US', {
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true
+                          }) : 'No time selected'}
                         </span>
                       </div>
                       <div className="flex justify-between font-semibold pt-2 border-t border-gray-300 dark:border-gray-600">
